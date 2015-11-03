@@ -50,7 +50,6 @@ var Profile = React.createClass({
     if (!currentUser){
       this.props.history.pushState(null, '/signin'); 
     }
-
     $.ajax({
       type : 'GET',
       url : '/users/' + currentUser,

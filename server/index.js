@@ -14,6 +14,7 @@ var MongoStore = require('connect-mongo')(session);
 
 
 passport.serializeUser(function(user, done) {
+  console.log('serialize this guy', user)
   done(null, user.id);
 });
 
@@ -31,6 +32,7 @@ passport.use('local-signup', new LocalStrategy({
   function(req, username, password, done) {
     //node. asnychc
     process.nextTick(function() {
+      
       User.findOne({
         username: username
       }, function(err, user) {
@@ -38,7 +40,7 @@ passport.use('local-signup', new LocalStrategy({
           return done(err);
         }
         if (user) {
-          return done(null, false, req.flash('signupMessage', 'username takend'));
+          return done(null, false);
         } else {
           var newUser = new User();
           newUser.username = username;
@@ -56,9 +58,10 @@ passport.use('local-signup', new LocalStrategy({
     });
   }));
 
-passport.use('local-login', new LocalStrategy({},
+passport.use('local-login', new LocalStrategy(
   function(username, password, done) {
     process.nextTick(function() {
+
       User.findOne({
         'username': username
       }, function(err, user) {
@@ -117,33 +120,32 @@ routes.post('/users/*', isLoggedIn, Helpers.submitProfile);
 routes.post('/messages', isLoggedIn, Helpers.sendMessage);
 
 
-routes.post('/signin',
-  passport.authenticate('local-login'),
-  function(req, res, next) {
-    user = req.user;
+routes.post('/signin', function(req, res, next) {
+  passport.authenticate('local-login',
+  function(err, user, info) {
+
     if (!user) {
-      return res.status(404).json({
-        user: "Not Found"
-      });
+      return res.status(404).json({user})
+    } else {
+      return res.status(200).json({user})
     }
-      return res.status(200).json({
-        'user' : user,
-        authenticated: true
-      });
+  })(req, res, next);
 });
 
 routes.post('/signup', function(req, res, next) {
-  passport.authenticate('local-signup', function(err, user, info) {
+  passport.authenticate('local-signup',
+  function(err, user, info) {
     if (err) {
       res.status(404).send();
       return next(err)
+    } else if (!user) {
+      res.status(400).send('username exists');
     } else {
       return res.status(200).json({
         'user' : user,
         authenticated: true
       });
     }
-
 
   })(req, res, next);
 });

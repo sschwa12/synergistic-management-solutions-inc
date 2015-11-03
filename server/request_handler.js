@@ -82,6 +82,7 @@ exports.signIn = function(req, res) {
 //overwrites current profile information
 //will overwrite all three fields (name, about, interests) 
 exports.submitProfile = function(req, res){
+  console.log('req body', req.body)
   //grabs the username from request URL
   var username = req.path.substring(7);
 
